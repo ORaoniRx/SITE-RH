@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login — RH Flow</title>
+    <link href="assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="assets/css/styles.css" rel="stylesheet">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="index.html">RH Flow</a>
+        <button class="nav-toggle" aria-expanded="false" aria-label="Abrir menu"><i class="bi bi-list"></i></button>
+        <nav class="site-nav" aria-label="Navegação principal">
+          <a href="index.html">Home</a>
+          <a href="sobre.html">Sobre</a>
+          <a href="vagas.html">Vagas</a>
+          <a href="cadastro-candidato.html">Cadastro</a>
+          <a href="login.html">Login</a>
+          <span class="nav-divider"></span>
+          <a href="rh-dashboard.html">RH</a>
+          <a href="func-perfil.html">Funcionário</a>
+          <a href="priv-funcionarios.html">Privado</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="container">
+        <section class="page-hero">
+          <div>
+            <p class="eyebrow">Acesso ao sistema</p>
+            <h1>Entre no seu perfil do RH Flow.</h1>
+            <p>Área de login para RH, funcionários e administradores. Acesso rápido para cada tipo de usuário.</p>
+          </div>
+          <div class="hero-aside"></div>
+        </section>
+
+        <section class="panel-card page-section">
+          <div class="section-title"><h2>Login</h2></div>
+          <form>
+            <label class="form-label">Perfil</label>
+            <select class="form-select mb-3" required>
+              <option>RH</option>
+              <option>Funcionário</option>
+              <option>Gestor</option>
+              <option>Administrador</option>
+            </select>
+            <label class="form-label">E-mail</label>
+            <input class="form-control mb-3" type="email" required>
+            <label class="form-label">Senha</label>
+            <input class="form-control mb-3" type="password" required>
+            <button class="btn btn-brand" type="submit">Entrar</button>
+          </form>
+        </section>
+
+        <section class="page-section">
+          <div class="card-grid">
+            <article class="small-card">
+              <h3>RH</h3>
+              <p class="muted">Acesse o painel de gestão de pessoas, folha e recrutamento.</p>
+            </article>
+            <article class="small-card">
+              <h3>Funcionário</h3>
+              <p class="muted">Consulte seu perfil, holerite, férias e ponto.</p>
+            </article>
+            <article class="small-card">
+              <h3>Administrador</h3>
+              <p class="muted">Gerencie permissões, usuários e configurações do sistema.</p>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>RH Flow — Entrada segura para os diferentes perfis do sistema.</p>
+      </div>
+    </footer>
+
+    <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/site.js"></script>
+  </body>
+</html>

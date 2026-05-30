@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { initDb } = require("./database");
+const { initDb, pool } = require("./database");
 
 const passwordHash = bcrypt.hashSync("123456", 10);
 
@@ -29,8 +29,8 @@ const candidates = [
   { name: "Bianca Melo", email: "bianca@email.com", phone: "11999990004", portfolio: "behance.net/bianca", summary: "Produto, UX writing e pesquisa.", vacancy: "UX Designer", stage: "Proposta", score: 88, source: "Site" }
 ];
 
-function reset(db) {
-  db.exec(`
+async function reset(client) {
+  await client.query(`
     DELETE FROM time_punches;
     DELETE FROM vacation_requests;
     DELETE FROM payslips;
@@ -39,84 +39,126 @@ function reset(db) {
     DELETE FROM users;
     DELETE FROM vacancies;
     DELETE FROM employees;
-    DELETE FROM sqlite_sequence WHERE name IN ('time_punches','vacation_requests','payslips','payroll','candidates','users','vacancies','employees');
   `);
 }
 
-function run() {
-  const db = initDb();
-  reset(db);
+async function run() {
+  await initDb();
+  const client = await pool.connect();
+  try {
+    await reset(client);
 
-  const insertEmployee = db.prepare(`
-    INSERT INTO employees (name, email, role, area, status, contract_type, manager, salary_cents, admission_date)
-    VALUES (@name, @email, @role, @area, @status, @contract_type, @manager, @salary_cents, @admission_date)
-  `);
-  employees.forEach((employee) => insertEmployee.run(employee));
+    const insertEmployeeText = `
+      INSERT INTO employees (name, email, role, area, status, contract_type, manager, salary_cents, admission_date)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING id
+    `;
+    const employeeIds = {};
 
-  const getEmployee = db.prepare("SELECT id FROM employees WHERE email = ?");
+    for (const employee of employees) {
+      const result = await client.query(insertEmployeeText, [
+        employee.name,
+        employee.email,
+        employee.role,
+        employee.area,
+        employee.status,
+        employee.contract_type,
+        employee.manager,
+        employee.salary_cents,
+        employee.admission_date
+      ]);
+      employeeIds[employee.email] = result.rows[0].id;
+    }
 
-  const insertVacancy = db.prepare(`
-    INSERT INTO vacancies (slug, title, sector, location, contract_type, level, status, description)
-    VALUES (@slug, @title, @sector, @location, @contract_type, @level, @status, @description)
-  `);
-  vacancies.forEach((vacancy) => insertVacancy.run(vacancy));
+    const insertVacancyText = `
+      INSERT INTO vacancies (slug, title, sector, location, contract_type, level, status, description)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id
+    `;
+    const vacancyIds = {};
 
-  const getVacancy = db.prepare("SELECT id FROM vacancies WHERE title = ?");
-  const insertCandidate = db.prepare(`
-    INSERT INTO candidates (name, email, phone, portfolio, summary, vacancy_id, stage, score, source)
-    VALUES (@name, @email, @phone, @portfolio, @summary, @vacancy_id, @stage, @score, @source)
-  `);
-  candidates.forEach((candidate) => insertCandidate.run({ ...candidate, vacancy_id: getVacancy.get(candidate.vacancy).id }));
+    for (const vacancy of vacancies) {
+      const result = await client.query(insertVacancyText, [
+        vacancy.slug,
+        vacancy.title,
+        vacancy.sector,
+        vacancy.location,
+        vacancy.contract_type,
+        vacancy.level,
+        vacancy.status,
+        vacancy.description
+      ]);
+      vacancyIds[vacancy.title] = result.rows[0].id;
+    }
 
-  const insertUser = db.prepare(`
-    INSERT INTO users (name, email, password_hash, role, employee_id, candidate_id, status)
-    VALUES (@name, @email, @password_hash, @role, @employee_id, @candidate_id, 'Ativo')
-  `);
+    const insertCandidateText = `
+      INSERT INTO candidates (name, email, phone, portfolio, summary, vacancy_id, stage, score, source)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `;
 
-  insertUser.run({ name: "Admin Master", email: "admin@rhflow.com", password_hash: passwordHash, role: "admin", employee_id: null, candidate_id: null });
-  insertUser.run({ name: "Equipe RH", email: "rh@rhflow.com", password_hash: passwordHash, role: "rh", employee_id: getEmployee.get("marina@rhflow.com").id, candidate_id: null });
-  insertUser.run({ name: "Rafael Dias", email: "gestor@rhflow.com", password_hash: passwordHash, role: "manager", employee_id: null, candidate_id: null });
-  insertUser.run({ name: "Marina Alves", email: "marina@rhflow.com", password_hash: passwordHash, role: "employee", employee_id: getEmployee.get("marina@rhflow.com").id, candidate_id: null });
-  insertUser.run({ name: "Ana Lima", email: "candidato@rhflow.com", password_hash: passwordHash, role: "candidate", employee_id: null, candidate_id: 1 });
-  insertUser.run({ name: "Seguranca RH", email: "seguranca@rhflow.com", password_hash: passwordHash, role: "admin", employee_id: null, candidate_id: null });
+    for (const candidate of candidates) {
+      await client.query(insertCandidateText, [
+        candidate.name,
+        candidate.email,
+        candidate.phone,
+        candidate.portfolio,
+        candidate.summary,
+        vacancyIds[candidate.vacancy],
+        candidate.stage,
+        candidate.score,
+        candidate.source
+      ]);
+    }
 
-  const insertPayroll = db.prepare(`
-    INSERT INTO payroll (employee_id, month, gross_cents, discounts_cents, net_cents, status)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `);
-  [
-    ["marina@rhflow.com", "Maio 2026", cents(5800), cents(812), cents(4988), "Fechado"],
-    ["bruno@rhflow.com", "Maio 2026", cents(9200), 0, cents(9200), "Pendente"],
-    ["ana@rhflow.com", "Maio 2026", cents(6700), cents(938), cents(5762), "Fechado"]
-  ].forEach(([email, month, gross, discounts, net, status]) => insertPayroll.run(getEmployee.get(email).id, month, gross, discounts, net, status));
+    const insertUserText = `
+      INSERT INTO users (name, email, password_hash, role, employee_id, candidate_id, status)
+      VALUES ($1, $2, $3, $4, $5, $6, 'Ativo')
+    `;
+    await client.query(insertUserText, ["Admin Master", "admin@rhflow.com", passwordHash, "admin", null, null]);
+    await client.query(insertUserText, ["Equipe RH", "rh@rhflow.com", passwordHash, "rh", employeeIds["marina@rhflow.com"], null]);
+    await client.query(insertUserText, ["Rafael Dias", "gestor@rhflow.com", passwordHash, "manager", null, null]);
+    await client.query(insertUserText, ["Marina Alves", "marina@rhflow.com", passwordHash, "employee", employeeIds["marina@rhflow.com"], null]);
+    await client.query(insertUserText, ["Ana Lima", "candidato@rhflow.com", passwordHash, "candidate", null, 1]);
+    await client.query(insertUserText, ["Seguranca RH", "seguranca@rhflow.com", passwordHash, "admin", null, null]);
 
-  const marinaId = getEmployee.get("marina@rhflow.com").id;
-  const insertPayslip = db.prepare(`
-    INSERT INTO payslips (employee_id, month, gross_cents, discounts_cents, net_cents, status)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `);
-  [
-    ["Maio 2026", cents(5800), cents(812), cents(4988), "Disponivel"],
-    ["Abril 2026", cents(5800), cents(804), cents(4996), "Disponivel"],
-    ["Marco 2026", cents(5800), cents(790), cents(5010), "Disponivel"]
-  ].forEach((row) => insertPayslip.run(marinaId, ...row));
+    const insertPayrollText = `
+      INSERT INTO payroll (employee_id, month, gross_cents, discounts_cents, net_cents, status)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `;
+    await client.query(insertPayrollText, [employeeIds["marina@rhflow.com"], "Maio 2026", cents(5800), cents(812), cents(4988), "Fechado"]);
+    await client.query(insertPayrollText, [employeeIds["bruno@rhflow.com"], "Maio 2026", cents(9200), 0, cents(9200), "Pendente"]);
+    await client.query(insertPayrollText, [employeeIds["ana@rhflow.com"], "Maio 2026", cents(6700), cents(938), cents(5762), "Fechado"]);
 
-  const insertPunch = db.prepare(`
-    INSERT INTO time_punches (employee_id, punch_date, entry_time, break_out_time, break_in_time, exit_time, balance_minutes)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
-  insertPunch.run(marinaId, "2026-05-28", "08:58", "12:01", "13:00", "18:02", 4);
-  insertPunch.run(marinaId, "2026-05-27", "09:04", "12:08", "13:10", "18:07", -1);
-  insertPunch.run(marinaId, "2026-05-26", "08:55", "12:00", "13:02", "18:01", 3);
+    const insertPayslipText = `
+      INSERT INTO payslips (employee_id, month, gross_cents, discounts_cents, net_cents, status)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `;
+    await client.query(insertPayslipText, [employeeIds["marina@rhflow.com"], "Maio 2026", cents(5800), cents(812), cents(4988), "Disponivel"]);
+    await client.query(insertPayslipText, [employeeIds["marina@rhflow.com"], "Abril 2026", cents(5800), cents(804), cents(4996), "Disponivel"]);
+    await client.query(insertPayslipText, [employeeIds["marina@rhflow.com"], "Marco 2026", cents(5800), cents(790), cents(5010), "Disponivel"]);
 
-  const insertVacation = db.prepare(`
-    INSERT INTO vacation_requests (employee_id, start_date, end_date, days, note, status)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `);
-  insertVacation.run(marinaId, "2026-07-06", "2026-07-17", 12, "Periodo sugerido pelo sistema.", "Pendente");
+    const insertPunchText = `
+      INSERT INTO time_punches (employee_id, punch_date, entry_time, break_out_time, break_in_time, exit_time, balance_minutes)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `;
+    await client.query(insertPunchText, [employeeIds["marina@rhflow.com"], "2026-05-28", "08:58", "12:01", "13:00", "18:02", 4]);
+    await client.query(insertPunchText, [employeeIds["marina@rhflow.com"], "2026-05-27", "09:04", "12:08", "13:10", "18:07", -1]);
+    await client.query(insertPunchText, [employeeIds["marina@rhflow.com"], "2026-05-26", "08:55", "12:00", "13:02", "18:01", 3]);
 
-  db.close();
-  console.log("Banco de dados inicializado com dados de exemplo.");
+    const insertVacationText = `
+      INSERT INTO vacation_requests (employee_id, start_date, end_date, days, note, status)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `;
+    await client.query(insertVacationText, [employeeIds["marina@rhflow.com"], "2026-07-06", "2026-07-17", 12, "Periodo sugerido pelo sistema.", "Pendente"]);
+
+    console.log("Banco de dados inicializado com dados de exemplo.");
+  } finally {
+    client.release();
+    await pool.end();
+  }
 }
 
-run();
+run().catch((error) => {
+  console.error("Erro ao executar seed:", error);
+  process.exit(1);
+});

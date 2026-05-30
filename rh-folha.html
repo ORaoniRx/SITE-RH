@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Folha de Pagamento — RH Flow</title>
+    <link href="assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="assets/css/styles.css" rel="stylesheet">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="index.html">RH Flow</a>
+        <button class="nav-toggle" aria-expanded="false" aria-label="Abrir menu"><i class="bi bi-list"></i></button>
+        <nav class="site-nav" aria-label="Navegação principal">
+          <a href="index.html">Home</a>
+          <a href="sobre.html">Sobre</a>
+          <a href="vagas.html">Vagas</a>
+          <a href="cadastro-candidato.html">Cadastro</a>
+          <a href="login.html">Login</a>
+          <span class="nav-divider"></span>
+          <a href="rh-dashboard.html">RH</a>
+          <a href="func-perfil.html">Funcionário</a>
+          <a href="priv-funcionarios.html">Privado</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="container">
+        <section class="page-hero">
+          <div>
+            <p class="eyebrow">Folha</p>
+            <h1>Verifique o fechamento da folha de pagamento.</h1>
+            <p>Resumo de salários, descontos e valor líquido para pagamento com visual limpa e profissional.</p>
+          </div>
+          <div class="hero-aside"></div>
+        </section>
+
+        <section class="stats-grid page-section">
+          <article class="small-card">
+            <h3>Total bruto</h3>
+            <p class="muted">R$ 124.820</p>
+          </article>
+          <article class="small-card">
+            <h3>Total líquido</h3>
+            <p class="muted">R$ 103.590</p>
+          </article>
+          <article class="small-card">
+            <h3>Descontos</h3>
+            <p class="muted">R$ 21.230</p>
+          </article>
+        </section>
+
+        <section class="panel-card page-section">
+          <div class="section-title"><h2>Resumo de lançamento</h2></div>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Funcionário</th>
+                  <th>Mês</th>
+                  <th>Bruto</th>
+                  <th>Liquido</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Mariana Silva</td><td>Maio</td><td>R$ 9.500</td><td>R$ 7.820</td><td>Fechada</td></tr>
+                <tr><td>Lucas Costa</td><td>Maio</td><td>R$ 8.960</td><td>R$ 7.320</td><td>Aguardando</td></tr>
+                <tr><td>Ana Barros</td><td>Maio</td><td>R$ 10.400</td><td>R$ 8.520</td><td>Fechada</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>RH Flow — Folha com transparência e controle.</p>
+      </div>
+    </footer>
+
+    <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/site.js"></script>
+  </body>
+</html>

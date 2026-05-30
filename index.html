@@ -3,86 +3,92 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>RH Flow - Plataforma de RH</title>
+    <title>RH Flow — Plataforma de Recursos Humanos</title>
     <link href="assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <link href="assets/css/styles.css" rel="stylesheet">
   </head>
   <body>
-    <div class="app-shell">
-      <aside class="sidebar">
-        <a class="brand" href="#home" aria-label="RH Flow home">
-          <span class="brand-mark">RH</span>
-          <span>
-            <strong>RH Flow</strong>
-            <small>Gestao de pessoas</small>
-          </span>
-        </a>
-
-        <nav class="sidebar-nav" aria-label="Menu principal">
-          <p class="nav-group">Area publica</p>
-          <button class="nav-link active" data-view="home"><i class="bi bi-house"></i> Home</button>
-          <button class="nav-link" data-view="sobre"><i class="bi bi-info-circle"></i> Sobre</button>
-          <button class="nav-link" data-view="vagas"><i class="bi bi-briefcase"></i> Vagas</button>
-          <button class="nav-link" data-view="cadastro-candidato"><i class="bi bi-person-plus"></i> Cadastro candidato</button>
-          <button class="nav-link" data-view="vagas-abertas"><i class="bi bi-search"></i> Vagas abertas</button>
-          <button class="nav-link" data-view="login-candidato"><i class="bi bi-box-arrow-in-right"></i> Login candidato</button>
-          <button class="nav-link" data-view="login"><i class="bi bi-shield-lock"></i> Login</button>
-
-          <p class="nav-group">Area do RH</p>
-          <button class="nav-link" data-view="rh-dashboard"><i class="bi bi-speedometer2"></i> Dashboard</button>
-          <button class="nav-link" data-view="rh-funcionarios"><i class="bi bi-people"></i> Funcionarios</button>
-          <button class="nav-link" data-view="rh-folha"><i class="bi bi-receipt"></i> Folha</button>
-          <button class="nav-link" data-view="rh-recrutamento"><i class="bi bi-diagram-3"></i> Recrutamento</button>
-          <button class="nav-link" data-view="rh-relatorios"><i class="bi bi-bar-chart"></i> Relatorios</button>
-
-          <p class="nav-group">Area funcionario</p>
-          <button class="nav-link" data-view="func-perfil"><i class="bi bi-person-badge"></i> Meu perfil</button>
-          <button class="nav-link" data-view="func-holerites"><i class="bi bi-file-earmark-text"></i> Holerites</button>
-          <button class="nav-link" data-view="func-ferias"><i class="bi bi-calendar-check"></i> Ferias</button>
-          <button class="nav-link" data-view="func-ponto"><i class="bi bi-clock-history"></i> Ponto</button>
-
-          <p class="nav-group">Area privada</p>
-          <button class="nav-link" data-view="priv-funcionarios"><i class="bi bi-person-vcard"></i> Cadastros RH</button>
-          <button class="nav-link" data-view="priv-gestores"><i class="bi bi-person-workspace"></i> Gestores</button>
-          <button class="nav-link" data-view="priv-admins"><i class="bi bi-person-gear"></i> Administradores</button>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="index.html">RH Flow</a>
+        <button class="nav-toggle" aria-expanded="false" aria-label="Abrir menu"><i class="bi bi-list"></i></button>
+        <nav class="site-nav" aria-label="Navegação principal">
+          <a href="index.html">Home</a>
+          <a href="sobre.html">Sobre</a>
+          <a href="vagas.html">Vagas</a>
+          <a href="cadastro-candidato.html">Cadastro</a>
+          <a href="login.html">Login</a>
+          <span class="nav-divider"></span>
+          <a href="rh-dashboard.html">RH</a>
+          <a href="func-perfil.html">Funcionário</a>
+          <a href="priv-funcionarios.html">Privado</a>
         </nav>
-      </aside>
+      </div>
+    </header>
 
-      <main class="main-panel">
-        <header class="topbar">
-          <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle" type="button" aria-label="Abrir menu">
-            <i class="bi bi-list"></i>
-          </button>
-          <div class="search-box">
-            <i class="bi bi-search"></i>
-            <input id="globalSearch" type="search" placeholder="Buscar por pessoa, vaga ou setor">
-          </div>
-          <div class="topbar-actions">
-            <span class="status-pill"><i class="bi bi-circle-fill"></i> Online</span>
-            <button class="icon-btn" type="button" aria-label="Notificacoes"><i class="bi bi-bell"></i></button>
-            <button class="user-chip" type="button">
-              <span>JF</span>
-              <strong>Joao</strong>
-            </button>
-          </div>
-        </header>
-
-        <section class="content-header">
+    <main class="page-content">
+      <div class="container">
+        <section class="page-hero">
           <div>
-            <span class="eyebrow" id="viewArea">Area publica</span>
-            <h1 id="viewTitle">Home</h1>
-            <p id="viewSubtitle">Visao geral do portal de RH.</p>
+            <p class="eyebrow">Gestão de Pessoas</p>
+            <h1>Uma plataforma RH completa para empresas e colaboradores.</h1>
+            <p>Organize contratações, folha de pagamento, ponto, relatórios e a experiência do candidato em um site sólido feito para RH.</p>
+            <div class="hero-actions">
+              <a class="btn btn-brand" href="rh-dashboard.html">Área do RH</a>
+              <a class="btn btn-outline-secondary" href="vagas.html">Ver vagas</a>
+              <a class="btn btn-outline-secondary" href="cadastro-candidato.html">Cadastrar candidato</a>
+            </div>
           </div>
-          <div id="viewActions" class="content-actions"></div>
+          <div class="hero-aside"></div>
         </section>
 
-        <div id="notice" class="notice" role="status" aria-live="polite"></div>
-        <section id="viewContent" class="content-grid"></section>
-      </main>
-    </div>
+        <section class="section-panel">
+          <div class="section-title"><h2>O site RH que sua empresa precisa</h2></div>
+          <div class="feature-grid">
+            <article class="panel-card feature-card">
+              <h3>Área pública</h3>
+              <p class="muted">Página institucional, lista de vagas e formulários de candidato feitos para atrair talento.</p>
+            </article>
+            <article class="panel-card feature-card">
+              <h3>Área do RH</h3>
+              <p class="muted">Dashboard, gestão de funcionários, folha, recrutamento e relatórios centralizados.</p>
+            </article>
+            <article class="panel-card feature-card">
+              <h3>Portal do colaborador</h3>
+              <p class="muted">Acompanhe perfil, holerites, férias e ponto com navegação clara e conteúdo relevante.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-panel">
+          <div class="section-title"><h2>Por que usar RH Flow?</h2></div>
+          <div class="cards-grid">
+            <article class="panel-card">
+              <h3>Fluxo organizado</h3>
+              <p class="muted">Configure processos de recrutamento, contrato e pagamento com navegação simples e moderna.</p>
+            </article>
+            <article class="panel-card">
+              <h3>Interface intuitiva</h3>
+              <p class="muted">Telões claros, botões objetivos e informações estruturadas para cada perfil de usuário.</p>
+            </article>
+            <article class="panel-card">
+              <h3>Base para crescimento</h3>
+              <p class="muted">Este site é um alicerce sólido para evoluir a plataforma com banco de dados e integração de autenticação.</p>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>RH Flow — Exemplos de páginas de Recursos Humanos para candidatos, funcionários e equipe de RH.</p>
+        <p><a href="index.html">Voltar ao início</a></p>
+      </div>
+    </footer>
 
     <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/app.js"></script>
+    <script src="assets/js/site.js"></script>
   </body>
 </html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cadastro de Candidato — RH Flow</title>
+    <link href="assets/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="assets/css/styles.css" rel="stylesheet">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="index.html">RH Flow</a>
+        <button class="nav-toggle" aria-expanded="false" aria-label="Abrir menu"><i class="bi bi-list"></i></button>
+        <nav class="site-nav" aria-label="Navegação principal">
+          <a href="index.html">Home</a>
+          <a href="sobre.html">Sobre</a>
+          <a href="vagas.html">Vagas</a>
+          <a href="cadastro-candidato.html">Cadastro</a>
+          <a href="login.html">Login</a>
+          <span class="nav-divider"></span>
+          <a href="rh-dashboard.html">RH</a>
+          <a href="func-perfil.html">Funcionário</a>
+          <a href="priv-funcionarios.html">Privado</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="container">
+        <section class="page-hero">
+          <div>
+            <p class="eyebrow">Cadastro de candidato</p>
+            <h1>Envie seu perfil e comece a seleção.</h1>
+            <p>Formulário simples para registrar informações do candidato e orientá-lo sobre as próximas etapas do processo seletivo.</p>
+          </div>
+          <div class="hero-aside"></div>
+        </section>
+
+        <section class="panel-card page-section">
+          <div class="section-title"><h2>Dados do candidato</h2></div>
+          <form>
+            <div class="row g-3">
+              <div class="col-md-6"><label class="form-label">Nome completo</label><input class="form-control" type="text" required></div>
+              <div class="col-md-6"><label class="form-label">E-mail</label><input class="form-control" type="email" required></div>
+              <div class="col-md-6"><label class="form-label">Telefone</label><input class="form-control" type="tel"></div>
+              <div class="col-md-6"><label class="form-label">Cargo desejado</label><input class="form-control" type="text"></div>
+              <div class="col-12"><label class="form-label">Resumo profissional</label><textarea class="form-control" rows="4"></textarea></div>
+              <div class="col-md-6"><label class="form-label">LinkedIn</label><input class="form-control" type="url"></div>
+              <div class="col-md-6"><label class="form-label">Portfolio</label><input class="form-control" type="url"></div>
+              <div class="col-12"><button class="btn btn-brand" type="submit">Enviar cadastro</button></div>
+            </div>
+          </form>
+        </section>
+
+        <section class="page-section">
+          <div class="small-card">
+            <h3>Próximas etapas</h3>
+            <p class="muted">Após o envio, o candidato será avaliado pelo RH e receberá retorno sobre a entrevista e demais fases.</p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>RH Flow — Cadastro de candidatos com fluxo bem definido.</p>
+      </div>
+    </footer>
+
+    <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/site.js"></script>
+  </body>
+</html>

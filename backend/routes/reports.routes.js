@@ -5,13 +5,13 @@ const roles = require("../middleware/roles");
 
 const router = express.Router();
 
-router.get("/dashboard", auth, roles("rh", "admin", "manager"), (req, res) => {
+router.get("/dashboard", auth, roles("rh", "admin", "manager"), async (req, res) => {
   const db = getDb();
-  const activeEmployees = db.prepare("SELECT COUNT(*) AS total FROM employees WHERE status = 'Ativo'").get().total;
-  const openVacancies = db.prepare("SELECT COUNT(*) AS total FROM vacancies WHERE status = 'Aberta'").get().total;
-  const candidateCount = db.prepare("SELECT COUNT(*) AS total FROM candidates").get().total;
-  const payrollTotal = db.prepare("SELECT COUNT(*) AS total FROM payroll").get().total;
-  const payrollClosed = db.prepare("SELECT COUNT(*) AS total FROM payroll WHERE status = 'Fechado'").get().total;
+  const activeEmployees = (await db.prepare("SELECT COUNT(*) AS total FROM employees WHERE status = 'Ativo'").get()).total;
+  const openVacancies = (await db.prepare("SELECT COUNT(*) AS total FROM vacancies WHERE status = 'Aberta'").get()).total;
+  const candidateCount = (await db.prepare("SELECT COUNT(*) AS total FROM candidates").get()).total;
+  const payrollTotal = (await db.prepare("SELECT COUNT(*) AS total FROM payroll").get()).total;
+  const payrollClosed = (await db.prepare("SELECT COUNT(*) AS total FROM payroll WHERE status = 'Fechado'").get()).total;
   db.close();
 
   res.json({

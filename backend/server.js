@@ -30,6 +30,13 @@ async function startServer() {
   app.use("/api/admins", require("./routes/admins.routes"));
   app.use("/api/reports", require("./routes/reports.routes"));
 
+  app.post("*", (req, res) => {
+    res.status(400).json({
+      message: "POST recebido no servidor, mas o caminho correto e /api/. Use /api/auth/login ou /api/candidates.",
+      examples: ["/api/auth/login", "/api/candidates", "/api/vacancies"]
+    });
+  });
+
   app.get("*", (req, res) => {
     res.sendFile(path.join(rootDir, "index.html"));
   });
@@ -37,6 +44,7 @@ async function startServer() {
   app.use((error, req, res, next) => {
     if (res.headersSent) return next(error);
     const status = error.status || 500;
+    console.error(error);
     res.status(status).json({ message: status === 500 ? "Erro interno do servidor." : error.message });
   });
 

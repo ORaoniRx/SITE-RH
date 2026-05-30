@@ -18,21 +18,32 @@ function replacePlaceholders(sql) {
 
 function prepare(sql) {
   return {
-    get: async (params = []) => {
+    get: async (...params) => {
       const text = replacePlaceholders(sql);
-      const values = Array.isArray(params) ? params : params === undefined ? [] : [params];
+      let values = [];
+      if (params.length === 1 && Array.isArray(params[0])) values = params[0];
+      else if (params.length > 0) values = params;
       const result = await pool.query(text, values);
       return result.rows[0];
     },
-    all: async (params = []) => {
+    all: async (...params) => {
       const text = replacePlaceholders(sql);
-      const values = Array.isArray(params) ? params : params === undefined ? [] : [params];
+      let values = [];
+      if (params.length === 1 && Array.isArray(params[0])) values = params[0];
+      else if (params.length > 0) values = params;
       const result = await pool.query(text, values);
       return result.rows;
     },
-    run: async (params = []) => {
-      const text = replacePlaceholders(sql);
-      const values = Array.isArray(params) ? params : params === undefined ? [] : [params];
+    run: async (...params) => {
+      let text = replacePlaceholders(sql);
+      let values = [];
+      if (params.length === 1 && Array.isArray(params[0])) values = params[0];
+      else if (params.length > 0) values = params;
+      // If this is an INSERT and doesn't already have RETURNING, add RETURNING id
+      const isInsert = /^\s*INSERT\b/i.test(text);
+      if (isInsert && !/\bRETURNING\b/i.test(text)) {
+        text = text + " RETURNING id";
+      }
       const result = await pool.query(text, values);
       return {
         ...result,

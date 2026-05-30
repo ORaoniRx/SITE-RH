@@ -6,9 +6,9 @@ const { mapEmployee } = require("./helpers");
 
 const router = express.Router();
 
-router.get("/", auth, roles("manager", "rh", "admin"), (req, res) => {
+router.get("/", auth, roles("manager", "rh", "admin"), async (req, res) => {
   const db = getDb();
-  const managers = db.prepare("SELECT * FROM employees WHERE role LIKE '%Coordenador%' OR role LIKE '%Coordenadora%' OR role LIKE '%Gerente%' ORDER BY name").all().map((employee) => ({ ...mapEmployee(employee), team: 5, approvals: 2 }));
+  const managers = (await db.prepare("SELECT * FROM employees WHERE role LIKE '%Coordenador%' OR role LIKE '%Coordenadora%' OR role LIKE '%Gerente%' ORDER BY name").all()).map((employee) => ({ ...mapEmployee(employee), team: 5, approvals: 2 }));
   db.close();
   res.json({ managers });
 });

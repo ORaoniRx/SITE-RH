@@ -18,11 +18,11 @@ function publicUser(user) {
   };
 }
 
-router.post("/login", (req, res, next) => {
+router.post("/login", async (req, res, next) => {
   try {
     requireFields(req.body, ["email", "password"]);
     const db = getDb();
-    const user = db.prepare("SELECT * FROM users WHERE email = ?").get(String(req.body.email).trim().toLowerCase());
+    const user = await db.prepare("SELECT * FROM users WHERE email = ?").get(String(req.body.email).trim().toLowerCase());
     db.close();
 
     if (!user || user.status !== "Ativo" || !bcrypt.compareSync(req.body.password, user.password_hash)) {

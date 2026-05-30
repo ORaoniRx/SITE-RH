@@ -17,20 +17,20 @@ function mapAdmin(user) {
   };
 }
 
-router.get("/", auth, roles("admin"), (req, res) => {
+router.get("/", auth, roles("admin"), async (req, res) => {
   const db = getDb();
-  const admins = db.prepare("SELECT id, name, email, status FROM users WHERE role = 'admin' ORDER BY name").all().map(mapAdmin);
+  const admins = (await db.prepare("SELECT id, name, email, status FROM users WHERE role = 'admin' ORDER BY name").all()).map(mapAdmin);
   db.close();
   res.json({ admins });
 });
 
-router.post("/", auth, roles("admin"), (req, res, next) => {
+router.post("/", auth, roles("admin"), async (req, res, next) => {
   try {
     requireFields(req.body, ["name", "email"]);
     const db = getDb();
     const passwordHash = bcrypt.hashSync(req.body.password || "123456", 10);
-    const result = db.prepare("INSERT INTO users (name, email, password_hash, role, status) VALUES (?, ?, ?, 'admin', 'Ativo')").run(req.body.name, String(req.body.email).trim().toLowerCase(), passwordHash);
-    const admin = db.prepare("SELECT id, name, email, status FROM users WHERE id = ?").get(result.lastInsertRowid);
+    const result = await db.prepare("INSERT INTO users (name, email, password_hash, role, status) VALUES (?, ?, ?, 'admin', 'Ativo')").run(req.body.name, String(req.body.email).trim().toLowerCase(), passwordHash);
+    const admin = await db.prepare("SELECT id, name, email, status FROM users WHERE id = ?").get(result.lastInsertRowid);
     db.close();
     res.status(201).json({ admin: mapAdmin(admin) });
   } catch (error) {

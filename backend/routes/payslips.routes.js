@@ -6,11 +6,11 @@ const { mapPayslip } = require("./helpers");
 
 const router = express.Router();
 
-router.get("/me", auth, (req, res) => {
+router.get("/me", auth, async (req, res) => {
   const employeeId = req.user.employee_id;
   if (!employeeId) return res.json({ holerites: [] });
   const db = getDb();
-  const holerites = db.prepare("SELECT * FROM payslips WHERE employee_id = ? ORDER BY id DESC").all(employeeId).map(mapPayslip);
+  const holerites = (await db.prepare("SELECT * FROM payslips WHERE employee_id = ? ORDER BY id DESC").all(employeeId)).map(mapPayslip);
   db.close();
   res.json({ holerites });
 });

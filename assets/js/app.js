@@ -1,51 +1,90 @@
 const state = {
   pendingVacancy: "",
-  employees: [
-    { id: 1, name: "Marina Alves", role: "Analista de RH", area: "RH", status: "Ativo", type: "CLT", manager: "Carla Souza", salary: "R$ 5.800" },
-    { id: 2, name: "Bruno Lima", role: "Desenvolvedor Full Stack", area: "Tecnologia", status: "Ativo", type: "PJ", manager: "Rafael Dias", salary: "R$ 9.200" },
-    { id: 3, name: "Ana Torres", role: "Designer de Produto", area: "Produto", status: "Ferias", type: "CLT", manager: "Rafael Dias", salary: "R$ 6.700" },
-    { id: 4, name: "Joao Ribeiro", role: "Analista Financeiro", area: "Financeiro", status: "Ativo", type: "CLT", manager: "Carla Souza", salary: "R$ 5.400" },
-    { id: 5, name: "Camila Rocha", role: "Coordenadora Comercial", area: "Comercial", status: "Ativo", type: "CLT", manager: "Patricia Neves", salary: "R$ 8.100" }
-  ],
-  vacancies: [
-    { id: "ux", title: "UX Designer", sector: "Produto", location: "Remoto", type: "CLT", level: "Pleno", status: "Aberta", applicants: 18, description: "Pesquisa, prototipos e melhoria da experiencia do colaborador." },
-    { id: "dev", title: "Desenvolvedor Full Stack", sector: "Tecnologia", location: "Hibrido", type: "PJ", level: "Senior", status: "Aberta", applicants: 27, description: "Desenvolvimento web, APIs e integracoes com sistemas internos." },
-    { id: "rh", title: "Analista de RH", sector: "Pessoas", location: "Presencial", type: "CLT", level: "Junior", status: "Aberta", applicants: 34, description: "Apoio em recrutamento, admissao, beneficios e comunicacao interna." },
-    { id: "finance", title: "Assistente Financeiro", sector: "Financeiro", location: "Hibrido", type: "CLT", level: "Junior", status: "Pausada", applicants: 12, description: "Rotinas financeiras, conferencia de folha e suporte a pagamentos." }
-  ],
-  candidates: [
-    { name: "Ana Lima", vacancy: "UX Designer", stage: "Triagem", score: 84, source: "LinkedIn" },
-    { name: "Miguel Santos", vacancy: "Desenvolvedor Full Stack", stage: "Entrevista", score: 91, source: "Indicacao" },
-    { name: "Rafa Costa", vacancy: "Analista de RH", stage: "Teste", score: 76, source: "Site" },
-    { name: "Bianca Melo", vacancy: "UX Designer", stage: "Proposta", score: 88, source: "Site" }
-  ],
-  payroll: [
-    { employee: "Marina Alves", month: "Maio 2026", gross: "R$ 5.800", discounts: "R$ 812", net: "R$ 4.988", status: "Fechado" },
-    { employee: "Bruno Lima", month: "Maio 2026", gross: "R$ 9.200", discounts: "R$ 0", net: "R$ 9.200", status: "Pendente" },
-    { employee: "Ana Torres", month: "Maio 2026", gross: "R$ 6.700", discounts: "R$ 938", net: "R$ 5.762", status: "Fechado" }
-  ],
-  holerites: [
-    { month: "Maio 2026", gross: "R$ 5.800", discounts: "R$ 812", net: "R$ 4.988", status: "Disponivel" },
-    { month: "Abril 2026", gross: "R$ 5.800", discounts: "R$ 804", net: "R$ 4.996", status: "Disponivel" },
-    { month: "Marco 2026", gross: "R$ 5.800", discounts: "R$ 790", net: "R$ 5.010", status: "Disponivel" }
-  ],
-  punches: [
-    { date: "28/05/2026", entry: "08:58", breakOut: "12:01", breakIn: "13:00", exit: "18:02", balance: "+00:04" },
-    { date: "27/05/2026", entry: "09:04", breakOut: "12:08", breakIn: "13:10", exit: "18:07", balance: "-00:01" },
-    { date: "26/05/2026", entry: "08:55", breakOut: "12:00", breakIn: "13:02", exit: "18:01", balance: "+00:03" }
-  ],
-  managers: [
-    { name: "Carla Souza", area: "Operacoes", team: 14, approvals: 6 },
-    { name: "Rafael Dias", area: "Tecnologia", team: 22, approvals: 4 },
-    { name: "Patricia Neves", area: "Comercial", team: 11, approvals: 2 }
-  ],
-  admins: [
-    { name: "Admin Master", email: "admin@rhflow.com", role: "Administrador geral", status: "Ativo" },
-    { name: "Seguranca RH", email: "seguranca@rhflow.com", role: "Auditoria", status: "Ativo" }
-  ]
+  user: JSON.parse(localStorage.getItem("rhflow_user") || "null"),
+  employees: [],
+  vacancies: [],
+  candidates: [],
+  payroll: [],
+  holerites: [],
+  punches: [],
+  managers: [],
+  admins: [],
+  reports: null
 };
 
-const areaLabels = {
+const API_BASE = "/api";
+
+async function apiFetch(path, options = {}) {
+  const token = localStorage.getItem("rhflow_token");
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {})
+    }
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || "Erro inesperado na API.");
+  }
+  return data;
+}
+
+function setSession(token, user) {
+  localStorage.setItem("rhflow_token", token);
+  localStorage.setItem("rhflow_user", JSON.stringify(user));
+  state.user = user;
+  updateUserChip();
+}
+
+function logout() {
+  localStorage.removeItem("rhflow_token");
+  localStorage.removeItem("rhflow_user");
+  state.user = null;
+  updateUserChip();
+  goTo("home");
+  showNotice("Sessao encerrada.");
+}
+
+function updateUserChip() {
+  const chip = document.querySelector(".user-chip span:last-child");
+  const status = document.querySelector(".status-dot + span");
+  if (chip) chip.textContent = state.user ? state.user.name : "Visitante";
+  if (status) status.textContent = state.user ? "Online" : "Offline";
+}
+
+async function loadDataForView(viewName) {
+  const protectedView = !["home", "sobre", "vagas", "cadastro-candidato", "vagas-abertas", "login", "login-candidato"].includes(viewName);
+  try {
+    if (["home", "vagas", "vagas-abertas", "cadastro-candidato"].includes(viewName)) {
+      state.vacancies = (await apiFetch("/vacancies/public")).vacancies;
+    }
+    if (protectedView && !state.user) return;
+    if (["rh-dashboard", "rh-relatorios"].includes(viewName)) state.reports = await apiFetch("/reports/dashboard");
+    if (["rh-dashboard", "rh-funcionarios", "priv-funcionarios"].includes(viewName)) state.employees = (await apiFetch("/employees")).employees;
+    if (["rh-dashboard", "rh-recrutamento"].includes(viewName)) state.candidates = (await apiFetch("/candidates")).candidates;
+    if (viewName === "rh-folha") state.payroll = (await apiFetch("/payroll")).payroll;
+    if (viewName === "func-perfil") {
+      const data = await apiFetch("/employees/me");
+      state.employees = data.employee ? [data.employee] : [];
+    }
+    if (viewName === "func-holerites") state.holerites = (await apiFetch("/payslips/me")).holerites;
+    if (viewName === "func-ferias") state.vacations = (await apiFetch("/vacations/me")).vacations;
+    if (viewName === "func-ponto") state.punches = (await apiFetch("/time-clock/me")).punches;
+    if (viewName === "login-candidato" && state.user?.role === "candidate") {
+      const data = await apiFetch("/candidates/me");
+      state.candidates = data.candidate ? [data.candidate] : [];
+    }
+    if (viewName === "priv-gestores") state.managers = (await apiFetch("/managers")).managers;
+    if (viewName === "priv-admins") state.admins = (await apiFetch("/admins")).admins;
+  } catch (error) {
+    showNotice(error.message);
+  }
+}
+
+
   public: "Area publica",
   rh: "Area do RH",
   employee: "Area funcionario",
@@ -360,14 +399,16 @@ function renderCandidateLogin() {
       <form class="form-card" id="candidateLoginForm">
         <div class="section-title"><h2>Acesso do candidato</h2></div>
         <label class="form-label">E-mail</label>
-        <input class="form-control mb-3" type="email" required>
+        <input class="form-control mb-3" name="email" type="email" value="candidato@rhflow.com" required>
         <label class="form-label">Senha</label>
-        <input class="form-control mb-3" type="password" required>
+        <input class="form-control mb-3" name="password" type="password" value="123456" required>
         <button class="btn btn-brand" type="submit"><i class="bi bi-box-arrow-in-right"></i> Entrar</button>
       </form>
       <div class="panel-card">
         <div class="section-title"><h2>Minha candidatura</h2></div>
-        ${candidateStatusCard("Ana Lima", "UX Designer", "Entrevista marcada", 72)}
+        ${state.user?.role === "candidate" && state.candidates[0]
+          ? candidateStatusCard(state.candidates[0].name, state.candidates[0].vacancy, state.candidates[0].stage, state.candidates[0].score)
+          : candidateStatusCard("Ana Lima", "UX Designer", "Entrevista marcada", 72)}
       </div>
     </div>
   `;
@@ -379,16 +420,16 @@ function renderGeneralLogin() {
       <form class="form-card" id="generalLoginForm">
         <div class="section-title"><h2>Entrar no sistema</h2></div>
         <label class="form-label">Perfil</label>
-        <select class="form-select mb-3" required>
+        <select class="form-select mb-3" name="profile" required>
           <option>RH</option>
           <option>Funcionario</option>
           <option>Gestor</option>
           <option>Administrador</option>
         </select>
         <label class="form-label">E-mail</label>
-        <input class="form-control mb-3" type="email" required>
+        <input class="form-control mb-3" name="email" type="email" value="rh@rhflow.com" required>
         <label class="form-label">Senha</label>
-        <input class="form-control mb-3" type="password" required>
+        <input class="form-control mb-3" name="password" type="password" value="123456" required>
         <button class="btn btn-brand" type="submit"><i class="bi bi-shield-lock"></i> Acessar</button>
       </form>
       <div class="panel-card">
@@ -397,6 +438,7 @@ function renderGeneralLogin() {
           <button class="btn btn-outline-secondary text-start" data-go="rh-dashboard"><i class="bi bi-speedometer2"></i> Entrar como RH</button>
           <button class="btn btn-outline-secondary text-start" data-go="func-perfil"><i class="bi bi-person-badge"></i> Entrar como funcionario</button>
           <button class="btn btn-outline-secondary text-start" data-go="priv-admins"><i class="bi bi-person-gear"></i> Entrar como administrador</button>
+          <button class="btn btn-outline-danger text-start" id="logoutBtn"><i class="bi bi-box-arrow-left"></i> Sair</button>
         </div>
       </div>
     </div>
@@ -565,9 +607,10 @@ function renderVacation() {
       </div>
       <form class="form-card" id="leaveForm">
         <div class="section-title"><h2>Solicitar ferias</h2></div>
-        <label class="form-label">Inicio</label><input class="form-control mb-3" type="date" required>
-        <label class="form-label">Fim</label><input class="form-control mb-3" type="date" required>
-        <label class="form-label">Observacao</label><textarea class="form-control mb-3" rows="4"></textarea>
+        <label class="form-label">Inicio</label><input class="form-control mb-3" name="startDate" type="date" required>
+        <label class="form-label">Fim</label><input class="form-control mb-3" name="endDate" type="date" required>
+        <label class="form-label">Dias</label><input class="form-control mb-3" name="days" type="number" min="1" value="10" required>
+        <label class="form-label">Observacao</label><textarea class="form-control mb-3" name="note" rows="4"></textarea>
         <button class="btn btn-brand" type="submit"><i class="bi bi-calendar-check"></i> Enviar solicitacao</button>
       </form>
     </div>
@@ -690,8 +733,9 @@ function candidateStatusCard(name, vacancy, stage, percent) {
   `;
 }
 
-function renderView(viewName) {
+async function renderView(viewName) {
   const view = viewMeta[viewName] || viewMeta.home;
+  await loadDataForView(viewName);
   document.getElementById("viewArea").textContent = areaLabels[view.area];
   document.getElementById("viewTitle").textContent = view.title;
   document.getElementById("viewSubtitle").textContent = view.subtitle;
@@ -703,6 +747,7 @@ function renderView(viewName) {
   document.body.classList.remove("sidebar-open");
   wireView(viewName);
   filterVisibleItems(document.getElementById("globalSearch").value);
+  updateUserChip();
 }
 
 function goTo(viewName) {
@@ -728,94 +773,134 @@ function filterVisibleItems(term) {
   });
 }
 
-function wireView(viewName) {
+async function wireView(viewName) {
   const candidateForm = document.getElementById("candidateForm");
   if (candidateForm) {
-    candidateForm.addEventListener("submit", (event) => {
+    candidateForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = new FormData(candidateForm);
-      state.candidates.push({
-        name: form.get("name"),
-        vacancy: form.get("vacancy"),
-        stage: "Triagem",
-        score: 68,
-        source: "Site"
-      });
-      state.pendingVacancy = "";
-      candidateForm.reset();
-      showNotice("Cadastro enviado. O candidato entrou na etapa de triagem.");
+      try {
+        await apiFetch("/candidates", {
+          method: "POST",
+          body: JSON.stringify(Object.fromEntries(form.entries()))
+        });
+        state.pendingVacancy = "";
+        candidateForm.reset();
+        showNotice("Cadastro enviado. O candidato entrou na etapa de triagem.");
+      } catch (error) {
+        showNotice(error.message);
+      }
     });
   }
 
   const employeeForm = document.getElementById("employeeForm");
   if (employeeForm) {
-    employeeForm.addEventListener("submit", (event) => {
+    employeeForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = new FormData(employeeForm);
-      state.employees.push({
-        id: Date.now(),
-        name: form.get("name"),
-        role: form.get("role"),
-        area: form.get("area"),
-        status: "Ativo",
-        type: form.get("type"),
-        manager: form.get("manager"),
-        salary: "R$ 0"
-      });
-      renderView(viewName);
-      showNotice("Funcionario cadastrado pelo RH.");
+      try {
+        await apiFetch("/employees", {
+          method: "POST",
+          body: JSON.stringify(Object.fromEntries(form.entries()))
+        });
+        await renderView(viewName);
+        showNotice("Funcionario cadastrado pelo RH.");
+      } catch (error) {
+        showNotice(error.message);
+      }
     });
   }
 
   const adminForm = document.getElementById("adminForm");
   if (adminForm) {
-    adminForm.addEventListener("submit", (event) => {
+    adminForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = new FormData(adminForm);
-      state.admins.push({
-        name: form.get("name"),
-        email: form.get("email"),
-        role: form.get("role"),
-        status: "Ativo"
-      });
-      renderView(viewName);
-      showNotice("Administrador criado com permissao privada.");
+      try {
+        await apiFetch("/admins", {
+          method: "POST",
+          body: JSON.stringify(Object.fromEntries(form.entries()))
+        });
+        await renderView(viewName);
+        showNotice("Administrador criado com permissao privada.");
+      } catch (error) {
+        showNotice(error.message);
+      }
     });
   }
 
   const leaveForm = document.getElementById("leaveForm");
   if (leaveForm) {
-    leaveForm.addEventListener("submit", (event) => {
+    leaveForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      leaveForm.reset();
-      showNotice("Solicitacao de ferias enviada para aprovacao do gestor.");
+      const form = new FormData(leaveForm);
+      try {
+        await apiFetch("/vacations", {
+          method: "POST",
+          body: JSON.stringify(Object.fromEntries(form.entries()))
+        });
+        leaveForm.reset();
+        await renderView(viewName);
+        showNotice("Solicitacao de ferias enviada para aprovacao do gestor.");
+      } catch (error) {
+        showNotice(error.message);
+      }
     });
   }
 
   const generalLoginForm = document.getElementById("generalLoginForm");
   if (generalLoginForm) {
-    generalLoginForm.addEventListener("submit", (event) => {
+    generalLoginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      showNotice("Login demonstrativo realizado. Use os atalhos para navegar pelas areas.");
+      const form = new FormData(generalLoginForm);
+      try {
+        const data = await apiFetch("/auth/login", {
+          method: "POST",
+          body: JSON.stringify(Object.fromEntries(form.entries()))
+        });
+        setSession(data.token, data.user);
+        const nextView = { admin: "priv-admins", rh: "rh-dashboard", manager: "priv-gestores", employee: "func-perfil", candidate: "login-candidato" }[data.user.role] || "home";
+        goTo(nextView);
+        showNotice("Login realizado com sucesso.");
+      } catch (error) {
+        showNotice(error.message);
+      }
     });
   }
 
   const candidateLoginForm = document.getElementById("candidateLoginForm");
   if (candidateLoginForm) {
-    candidateLoginForm.addEventListener("submit", (event) => {
+    candidateLoginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      showNotice("Login de candidato demonstrativo realizado.");
+      const form = new FormData(candidateLoginForm);
+      try {
+        const data = await apiFetch("/auth/login", {
+          method: "POST",
+          body: JSON.stringify(Object.fromEntries(form.entries()))
+        });
+        setSession(data.token, data.user);
+        showNotice("Login de candidato realizado.");
+      } catch (error) {
+        showNotice(error.message);
+      }
     });
+  }
+
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", logout);
   }
 
   const clockBtn = document.getElementById("clockBtn");
   if (clockBtn) {
-    clockBtn.addEventListener("click", () => {
-      const now = new Date();
-      const time = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-      state.punches.unshift({ date: "28/05/2026", entry: time, breakOut: "-", breakIn: "-", exit: "-", balance: "Em aberto" });
-      renderView(viewName);
-      showNotice(`Ponto registrado as ${time}.`);
+    clockBtn.addEventListener("click", async () => {
+      try {
+        await apiFetch("/time-clock/punch", { method: "POST", body: JSON.stringify({}) });
+        await renderView(viewName);
+        showNotice("Ponto registrado com sucesso.");
+      } catch (error) {
+        showNotice(error.message);
+      }
     });
   }
 }

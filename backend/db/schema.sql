@@ -1,0 +1,117 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS employees (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  role TEXT NOT NULL,
+  area TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Ativo',
+  contract_type TEXT NOT NULL DEFAULT 'CLT',
+  manager TEXT,
+  salary_cents INTEGER NOT NULL DEFAULT 0,
+  admission_date TEXT NOT NULL DEFAULT CURRENT_DATE,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('admin', 'rh', 'manager', 'employee', 'candidate')),
+  employee_id INTEGER,
+  candidate_id INTEGER,
+  status TEXT NOT NULL DEFAULT 'Ativo',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS vacancies (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  sector TEXT NOT NULL,
+  location TEXT NOT NULL,
+  contract_type TEXT NOT NULL,
+  level TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Aberta',
+  description TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS candidates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT,
+  portfolio TEXT,
+  summary TEXT,
+  vacancy_id INTEGER NOT NULL,
+  stage TEXT NOT NULL DEFAULT 'Triagem',
+  score INTEGER NOT NULL DEFAULT 68,
+  source TEXT NOT NULL DEFAULT 'Site',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (vacancy_id) REFERENCES vacancies(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS payroll (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER NOT NULL,
+  month TEXT NOT NULL,
+  gross_cents INTEGER NOT NULL,
+  discounts_cents INTEGER NOT NULL DEFAULT 0,
+  net_cents INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Pendente',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS payslips (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER NOT NULL,
+  month TEXT NOT NULL,
+  gross_cents INTEGER NOT NULL,
+  discounts_cents INTEGER NOT NULL DEFAULT 0,
+  net_cents INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Disponivel',
+  file_url TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS vacation_requests (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER NOT NULL,
+  start_date TEXT NOT NULL,
+  end_date TEXT NOT NULL,
+  days INTEGER NOT NULL,
+  note TEXT,
+  status TEXT NOT NULL DEFAULT 'Pendente',
+  approved_by INTEGER,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+  FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS time_punches (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  employee_id INTEGER NOT NULL,
+  punch_date TEXT NOT NULL,
+  entry_time TEXT,
+  break_out_time TEXT,
+  break_in_time TEXT,
+  exit_time TEXT,
+  balance_minutes INTEGER DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(employee_id, punch_date),
+  FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+);

@@ -7,7 +7,7 @@ const rootDir = path.resolve(__dirname, "../..");
 const schemaPath = path.join(__dirname, "schema.sql");
 
 const connectionString = process.env.DATABASE_URL ||
-  `postgresql://${process.env.DB_USER || "postgres"}:${process.env.DB_PASSWORD || "23"}@${process.env.DB_HOST || "localhost"}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || "rhflow"}`;
+  `postgresql://${process.env.DB_USER || "postgres"}:${process.env.DB_PASSWORD || "senai"}@${process.env.DB_HOST || "localhost"}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || "postgres"}`;
 
 const pool = new Pool({ connectionString });
 

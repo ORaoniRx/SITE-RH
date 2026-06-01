@@ -117,6 +117,11 @@ function requireFields(body, fields) {
   }
 }
 
+function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(String(email).trim().toLowerCase());
+}
+
 module.exports = {
   formatMoney,
   formatDate,
@@ -128,5 +133,6 @@ module.exports = {
   mapPayslip,
   mapPunch,
   mapVacation,
-  requireFields
+  requireFields,
+  validateEmail
 };

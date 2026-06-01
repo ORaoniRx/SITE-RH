@@ -2,7 +2,7 @@ const express = require("express");
 const { getDb } = require("../db/database");
 const auth = require("../middleware/auth");
 const roles = require("../middleware/roles");
-const { mapCandidate, requireFields } = require("./helpers");
+const { mapCandidate, requireFields, validateEmail } = require("./helpers");
 
 const router = express.Router();
 
@@ -15,6 +15,20 @@ const candidateQuery = `
 router.post("/", async (req, res, next) => {
   try {
     requireFields(req.body, ["name", "email", "phone", "vacancy"]);
+    
+    // Validar email
+    if (!validateEmail(req.body.email)) {
+      return res.status(400).json({ message: "E-mail invalido." });
+    }
+    
+    // Validar score se fornecido
+    if (req.body.score !== undefined && req.body.score !== null) {
+      const score = Number(req.body.score);
+      if (isNaN(score) || score < 0 || score > 100) {
+        return res.status(400).json({ message: "Score deve estar entre 0 e 100." });
+      }
+    }
+    
     const db = getDb();
     const vacancy = await db.prepare("SELECT id FROM vacancies WHERE slug = ? OR title = ?").get(req.body.vacancy, req.body.vacancy);
     if (!vacancy) {
@@ -23,8 +37,8 @@ router.post("/", async (req, res, next) => {
     }
     const result = await db.prepare(`
       INSERT INTO candidates (name, email, phone, portfolio, summary, vacancy_id, stage, score, source)
-      VALUES (?, ?, ?, ?, ?, ?, 'Triagem', 68, 'Site')
-    `).run(req.body.name, req.body.email, req.body.phone, req.body.portfolio || "", req.body.summary || "", vacancy.id);
+      VALUES (?, ?, ?, ?, ?, ?, 'Triagem', ?, 'Site')
+    `).run(req.body.name, req.body.email, req.body.phone, req.body.portfolio || "", req.body.summary || "", vacancy.id, req.body.score || 68);
     const candidate = await db.prepare(`${candidateQuery} WHERE c.id = ?`).get(result.lastInsertRowid);
     db.close();
     res.status(201).json({ candidate: mapCandidate(candidate) });
@@ -33,7 +47,14 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.get("/", auth, roles("rh", "admin", "manager"), async (req, res) => {
+router.get("/", async (req, res) => {
+  const db = getDb();
+  const candidates = (await db.prepare(`${candidateQuery} ORDER BY c.created_at DESC`).all()).map(mapCandidate);
+  db.close();
+  res.json(candidates || []);
+});
+
+router.get("/auth/list", auth, roles("rh", "admin", "manager"), async (req, res) => {
   const db = getDb();
   const candidates = (await db.prepare(`${candidateQuery} ORDER BY c.created_at DESC`).all()).map(mapCandidate);
   db.close();

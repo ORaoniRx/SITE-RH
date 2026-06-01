@@ -12,6 +12,13 @@ const vacancyQuery = `
   LEFT JOIN candidates c ON c.vacancy_id = v.id
 `;
 
+router.get("/", async (req, res) => {
+  const db = getDb();
+  const vacancies = (await db.prepare(`${vacancyQuery} WHERE v.status = 'Aberta' GROUP BY v.id ORDER BY v.created_at DESC`).all()).map(mapVacancy);
+  db.close();
+  res.json(vacancies);
+});
+
 router.get("/public", async (req, res) => {
   const db = getDb();
   const vacancies = (await db.prepare(`${vacancyQuery} WHERE v.status = 'Aberta' GROUP BY v.id ORDER BY v.created_at DESC`).all()).map(mapVacancy);
@@ -19,7 +26,7 @@ router.get("/public", async (req, res) => {
   res.json({ vacancies });
 });
 
-router.get("/", auth, roles("rh", "admin", "manager"), async (req, res) => {
+router.get("/all", auth, roles("rh", "admin", "manager"), async (req, res) => {
   const db = getDb();
   const vacancies = (await db.prepare(`${vacancyQuery} GROUP BY v.id ORDER BY v.created_at DESC`).all()).map(mapVacancy);
   db.close();

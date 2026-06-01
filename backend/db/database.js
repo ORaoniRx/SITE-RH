@@ -7,9 +7,18 @@ const rootDir = path.resolve(__dirname, "../..");
 const schemaPath = path.join(__dirname, "schema.sql");
 
 const connectionString = process.env.DATABASE_URL ||
+<<<<<<< Updated upstream
   `postgresql://${process.env.DB_USER || "postgres"}:${process.env.DB_PASSWORD || "senai"}@${process.env.DB_HOST || "localhost"}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || "postgres"}`;
+=======
+  `postgresql://${process.env.DB_USER || "rh-flow"}:${process.env.DB_PASSWORD || "23"}@${process.env.DB_HOST || "localhost"}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || "postgres"}`;
+>>>>>>> Stashed changes
 
 const pool = new Pool({ connectionString });
+
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
 
 function replacePlaceholders(sql) {
   let index = 0;
@@ -57,7 +66,11 @@ async function initDb() {
   const client = await pool.connect();
   try {
     const schema = fs.readFileSync(schemaPath, "utf8");
+    console.log("Applying database schema...");
+    await client.query('BEGIN');
     await client.query(schema);
+    await client.query('COMMIT');
+    console.log("Database schema applied.");
   } finally {
     client.release();
   }

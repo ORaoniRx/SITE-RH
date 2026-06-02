@@ -37,6 +37,19 @@ CREATE TABLE IF NOT EXISTS vacancies (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+INSERT INTO vacancies (slug, title, sector, location, contract_type, level, status, description)
+VALUES (
+  'banco-de-talentos',
+  'Banco de Talentos',
+  'Geral',
+  'Remoto',
+  'A definir',
+  'Todos',
+  'Aberta',
+  'Cadastre seu perfil para futuras oportunidades no RH Flow.'
+)
+ON CONFLICT (slug) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS candidates (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,

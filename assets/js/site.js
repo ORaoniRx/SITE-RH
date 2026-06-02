@@ -53,6 +53,16 @@ function clearNotice() {
   notice.className = "notice";
 }
 
+function escapeHtml(value = "") {
+  return String(value).replace(/[&<>'"]/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#39;",
+    '"': "&quot;"
+  }[char]));
+}
+
 function setFormLoading(form, isLoading) {
   const submitButton = form.querySelector("button[type='submit'], input[type='submit']");
   if (!submitButton) return;
@@ -173,22 +183,43 @@ function fillCards(selector, values) {
   });
 }
 
+function renderVacancyCards(vacancies) {
+  return vacancies.map((vacancy) => `
+    <article class="small-card">
+      <h3>${escapeHtml(vacancy.title)}</h3>
+      <p class="muted">${escapeHtml(vacancy.description)}</p>
+      <p><strong>Setor:</strong> ${escapeHtml(vacancy.sector)}</p>
+      <p><strong>Local:</strong> ${escapeHtml(vacancy.location)}</p>
+      <p><strong>Status:</strong> ${escapeHtml(vacancy.status)}</p>
+      <a class="btn btn-outline-primary" href="cadastro-candidato.html?vaga=${encodeURIComponent(vacancy.id)}">Candidatar-se</a>
+    </article>
+  `).join("");
+}
+
+function renderVacancyOptions(vacancies) {
+  return `<option value="">Selecione</option>` + vacancies.map((vacancy) => `
+    <option value="${escapeHtml(vacancy.id)}">${escapeHtml(vacancy.title)}</option>
+  `).join("");
+}
+
 async function loadVagasPage() {
+  const grid = document.querySelector(".card-grid");
+  if (!grid) return;
+
+  grid.innerHTML = `<p class="muted">Carregando vagas...</p>`;
+
   try {
     const data = await apiFetch("/vacancies/public");
-    const grid = document.querySelector(".card-grid");
-    if (!grid) return;
-    grid.innerHTML = data.vacancies.map((vacancy) => `
-      <article class="small-card">
-        <h3>${escapeHtml(vacancy.title)}</h3>
-        <p class="muted">${escapeHtml(vacancy.description)}</p>
-        <p><strong>Setor:</strong> ${escapeHtml(vacancy.sector)}</p>
-        <p><strong>Local:</strong> ${escapeHtml(vacancy.location)}</p>
-        <p><strong>Status:</strong> ${escapeHtml(vacancy.status)}</p>
-        <a class="btn btn-outline-primary" href="cadastro-candidato.html?vaga=${encodeURIComponent(vacancy.id)}">Candidatar-se</a>
-      </article>
-    `).join("");
+    const vacancies = data.vacancies || [];
+
+    if (!vacancies.length) {
+      grid.innerHTML = `<article class="small-card"><p class="muted">Nenhuma vaga aberta no momento.</p></article>`;
+      return;
+    }
+
+    grid.innerHTML = renderVacancyCards(vacancies);
   } catch (error) {
+    grid.innerHTML = `<article class="small-card"><p class="muted">Não foi possível carregar as vagas no momento.</p></article>`;
     showNotice(error.message);
   }
 }
@@ -211,9 +242,7 @@ async function initCandidateSignup() {
         vacancySelect.innerHTML = `<option value="">Nenhuma vaga aberta no momento</option>`;
         showNotice("Nenhuma vaga aberta no momento.", "warning");
       } else {
-        vacancySelect.innerHTML = `<option value="">Selecione</option>` + data.vacancies.map((vacancy) => `
-          <option value="${escapeHtml(vacancy.id)}">${escapeHtml(vacancy.title)}</option>
-        `).join("");
+        vacancySelect.innerHTML = renderVacancyOptions(data.vacancies);
         const selectedVacancy = new URLSearchParams(window.location.search).get("vaga");
         if (selectedVacancy) vacancySelect.value = selectedVacancy;
         vacancySelect.disabled = false;

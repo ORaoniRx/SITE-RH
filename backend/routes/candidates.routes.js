@@ -30,7 +30,9 @@ router.post("/", async (req, res, next) => {
 
     const portfolioLinks = [portfolio, linkedin && `LinkedIn: ${linkedin}`].filter(Boolean).join(" | ");
     const db = getDb();
-    const vacancy = await db.prepare("SELECT id FROM vacancies WHERE (slug = ? OR title = ?) AND status = 'Aberta'").get(vacancyValue, vacancyValue);
+    const vacancy = /^\d+$/.test(vacancyValue)
+      ? await db.prepare("SELECT id FROM vacancies WHERE id = ? AND status = 'Aberta'").get(Number(vacancyValue))
+      : await db.prepare("SELECT id FROM vacancies WHERE (slug = ? OR title = ?) AND status = 'Aberta'").get(vacancyValue, vacancyValue);
     if (!vacancy) {
       db.close();
       return res.status(400).json({ message: "Vaga nao encontrada ou indisponivel." });

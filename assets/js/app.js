@@ -84,7 +84,7 @@ async function loadDataForView(viewName) {
   }
 }
 
-
+const areaLabels = {
   public: "Area publica",
   rh: "Area do RH",
   employee: "Area funcionario",

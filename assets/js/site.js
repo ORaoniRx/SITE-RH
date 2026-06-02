@@ -375,13 +375,13 @@ async function loadRhRecrutamento() {
     const stageOrder = Object.keys(groups).length ? Object.keys(groups) : ["Triagem", "Entrevista", "Teste", "Proposta"];
     pipeline.innerHTML = stageOrder.map((stage) => `
       <div class="pipeline-column">
-        <h3>${stage}</h3>
-        ${groups[stage] ? groups[stage].map((candidate) => `<div class="candidate-card"><strong>${candidate.name}</strong><p class="muted">${candidate.vacancy}</p></div>`).join("") : `
+        <h3>${escapeHtml(stage)}</h3>
+        ${groups[stage] ? groups[stage].map((candidate) => `<div class="candidate-card"><strong>${escapeHtml(candidate.name)}</strong><p class="muted">${escapeHtml(candidate.vacancy)}</p></div>`).join("") : `
           <div class="candidate-card"><p class="muted">Nenhum candidato nesta etapa.</p></div>`}
       </div>
     `).join("");
   } catch (error) {
-    pipeline.innerHTML = `<div class="candidate-card">${error.message}</div>`;
+    pipeline.innerHTML = `<div class="candidate-card">${escapeHtml(error.message)}</div>`;
   }
 }
 

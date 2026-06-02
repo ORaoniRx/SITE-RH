@@ -69,12 +69,32 @@ function addNavToggle() {
   });
 }
 
+function pageNeedsLogin(path) {
+  return path.startsWith("rh-") || path.startsWith("func-") || path.startsWith("priv-");
+}
+
+function homeForRole(role) {
+  const pages = {
+    admin: "priv-funcionarios.html",
+    rh: "rh-dashboard.html",
+    manager: "rh-dashboard.html",
+    employee: "func-perfil.html",
+    candidate: "vagas.html"
+  };
+  return pages[role] || "index.html";
+}
+
 async function init() {
   addNavToggle();
   setActiveNav();
+  const path = window.location.pathname.split("/").pop() || "index.html";
   const user = await loadUserInfo();
 
-  const path = window.location.pathname.split("/").pop() || "index.html";
+  if (pageNeedsLogin(path) && !user) {
+    window.location.href = "login.html";
+    return;
+  }
+
   switch (path) {
     case "vagas.html":
       return loadVagasPage();
@@ -132,11 +152,12 @@ async function loadVagasPage() {
     if (!grid) return;
     grid.innerHTML = data.vacancies.map((vacancy) => `
       <article class="small-card">
-        <h3>${vacancy.title}</h3>
-        <p class="muted">${vacancy.description}</p>
-        <p><strong>Setor:</strong> ${vacancy.sector}</p>
-        <p><strong>Local:</strong> ${vacancy.location}</p>
-        <p><strong>Status:</strong> ${vacancy.status}</p>
+        <h3>${escapeHtml(vacancy.title)}</h3>
+        <p class="muted">${escapeHtml(vacancy.description)}</p>
+        <p><strong>Setor:</strong> ${escapeHtml(vacancy.sector)}</p>
+        <p><strong>Local:</strong> ${escapeHtml(vacancy.location)}</p>
+        <p><strong>Status:</strong> ${escapeHtml(vacancy.status)}</p>
+        <a class="btn btn-outline-primary" href="cadastro-candidato.html?vaga=${encodeURIComponent(vacancy.id)}">Candidatar-se</a>
       </article>
     `).join("");
   } catch (error) {
@@ -152,8 +173,10 @@ async function initCandidateSignup() {
     try {
       const data = await apiFetch("/vacancies/public");
       vacancySelect.innerHTML = `<option value="">Selecione</option>` + data.vacancies.map((vacancy) => `
-        <option value="${vacancy.id}">${vacancy.title}</option>
+        <option value="${escapeHtml(vacancy.id)}">${escapeHtml(vacancy.title)}</option>
       `).join("");
+      const selectedVacancy = new URLSearchParams(window.location.search).get("vaga");
+      if (selectedVacancy) vacancySelect.value = selectedVacancy;
     } catch (error) {
       vacancySelect.innerHTML = `<option value="">${error.message}</option>`;
     }
@@ -195,7 +218,7 @@ function initLoginPage() {
       const data = await apiFetch("/auth/login", { method: "POST", body: JSON.stringify(body) });
       setToken(data.token);
       showNotice("Login realizado com sucesso.");
-      window.location.href = "index.html";
+      window.location.href = homeForRole(data.user.role);
     } catch (error) {
       showNotice(error.message);
     }
@@ -284,7 +307,7 @@ async function loadRhRecrutamento() {
   const pipeline = document.querySelector(".pipeline");
   if (!pipeline) return;
   try {
-    const data = await apiFetch("/candidates");
+    const data = await apiFetch("/candidates/auth/list");
     const groups = {};
     data.candidates.forEach((candidate) => {
       const stage = candidate.stage || "Triagem";

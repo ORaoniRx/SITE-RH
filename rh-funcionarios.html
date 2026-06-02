@@ -65,10 +65,11 @@
             <h3>Adicionar novo colaborador</h3>
             <form>
               <div class="row g-3">
-                <div class="col-md-6"><label class="form-label">Nome</label><input class="form-control" type="text"></div>
-                <div class="col-md-6"><label class="form-label">Cargo</label><input class="form-control" type="text"></div>
-                <div class="col-md-6"><label class="form-label">Área</label><input class="form-control" type="text"></div>
-                <div class="col-md-6"><label class="form-label">Gestor</label><input class="form-control" type="text"></div>
+                <div class="col-md-6"><label class="form-label">Nome</label><input class="form-control" name="name" type="text" required></div>
+                <div class="col-md-6"><label class="form-label">Cargo</label><input class="form-control" name="role" type="text" required></div>
+                <div class="col-md-6"><label class="form-label">Área</label><input class="form-control" name="area" type="text" required></div>
+                <div class="col-md-6"><label class="form-label">Tipo</label><select class="form-select" name="type" required><option>CLT</option><option>PJ</option><option>Estágio</option></select></div>
+                <div class="col-md-6"><label class="form-label">Gestor</label><input class="form-control" name="manager" type="text" required></div>
                 <div class="col-12"><button class="btn btn-brand" type="submit">Cadastrar funcionário</button></div>
               </div>
             </form>

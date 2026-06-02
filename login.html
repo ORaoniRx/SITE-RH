@@ -42,16 +42,16 @@
           <div class="section-title"><h2>Login</h2></div>
           <form>
             <label class="form-label">Perfil</label>
-            <select class="form-select mb-3" required>
-              <option>RH</option>
-              <option>Funcionário</option>
-              <option>Gestor</option>
-              <option>Administrador</option>
+            <select class="form-select mb-3" name="profile" required>
+              <option value="rh">RH</option>
+              <option value="employee">Funcionário</option>
+              <option value="manager">Gestor</option>
+              <option value="admin">Administrador</option>
             </select>
             <label class="form-label">E-mail</label>
-            <input class="form-control mb-3" type="email" required>
+            <input class="form-control mb-3" name="email" type="email" autocomplete="email" required>
             <label class="form-label">Senha</label>
-            <input class="form-control mb-3" type="password" required>
+            <input class="form-control mb-3" name="password" type="password" autocomplete="current-password" required>
             <button class="btn btn-brand" type="submit">Entrar</button>
           </form>
         </section>

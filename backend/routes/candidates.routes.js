@@ -15,30 +15,37 @@ const candidateQuery = `
 router.post("/", async (req, res, next) => {
   try {
     requireFields(req.body, ["name", "email", "phone", "vacancy"]);
-    
-    // Validar email
-    if (!validateEmail(req.body.email)) {
+
+    const email = String(req.body.email).trim().toLowerCase();
+    const vacancyValue = String(req.body.vacancy).trim();
+    const name = String(req.body.name).trim();
+    const phone = String(req.body.phone).trim();
+    const linkedin = String(req.body.linkedin || "").trim();
+    const portfolio = String(req.body.portfolio || "").trim();
+    const summary = String(req.body.summary || "").trim();
+
+    if (!validateEmail(email)) {
       return res.status(400).json({ message: "E-mail invalido." });
     }
-    
-    // Validar score se fornecido
-    if (req.body.score !== undefined && req.body.score !== null) {
-      const score = Number(req.body.score);
-      if (isNaN(score) || score < 0 || score > 100) {
-        return res.status(400).json({ message: "Score deve estar entre 0 e 100." });
-      }
-    }
-    
+
+    const portfolioLinks = [portfolio, linkedin && `LinkedIn: ${linkedin}`].filter(Boolean).join(" | ");
     const db = getDb();
-    const vacancy = await db.prepare("SELECT id FROM vacancies WHERE slug = ? OR title = ?").get(req.body.vacancy, req.body.vacancy);
+    const vacancy = await db.prepare("SELECT id FROM vacancies WHERE (slug = ? OR title = ?) AND status = 'Aberta'").get(vacancyValue, vacancyValue);
     if (!vacancy) {
       db.close();
-      return res.status(400).json({ message: "Vaga nao encontrada." });
+      return res.status(400).json({ message: "Vaga nao encontrada ou indisponivel." });
     }
+
+    const duplicate = await db.prepare("SELECT id FROM candidates WHERE email = ? AND vacancy_id = ?").get(email, vacancy.id);
+    if (duplicate) {
+      db.close();
+      return res.status(409).json({ message: "Ja existe candidatura para este e-mail nesta vaga." });
+    }
+
     const result = await db.prepare(`
       INSERT INTO candidates (name, email, phone, portfolio, summary, vacancy_id, stage, score, source)
-      VALUES (?, ?, ?, ?, ?, ?, 'Triagem', ?, 'Site')
-    `).run(req.body.name, req.body.email, req.body.phone, req.body.portfolio || "", req.body.summary || "", vacancy.id, req.body.score || 68);
+      VALUES (?, ?, ?, ?, ?, ?, 'Triagem', 68, 'Site')
+    `).run(name, email, phone, portfolioLinks, summary, vacancy.id);
     const candidate = await db.prepare(`${candidateQuery} WHERE c.id = ?`).get(result.lastInsertRowid);
     db.close();
     res.status(201).json({ candidate: mapCandidate(candidate) });

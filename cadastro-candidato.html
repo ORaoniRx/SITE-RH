@@ -40,15 +40,16 @@
 
         <section class="panel-card page-section">
           <div class="section-title"><h2>Dados do candidato</h2></div>
-          <form>
+          <div class="notice" data-notice role="status" aria-live="polite"></div>
+          <form id="candidateSignupForm" data-candidate-form>
             <div class="row g-3">
-              <div class="col-md-6"><label class="form-label">Nome completo</label><input class="form-control" name="name" type="text" required></div>
-              <div class="col-md-6"><label class="form-label">E-mail</label><input class="form-control" name="email" type="email" autocomplete="email" required></div>
-              <div class="col-md-6"><label class="form-label">Telefone</label><input class="form-control" name="phone" type="tel" required></div>
-              <div class="col-md-6"><label class="form-label">Vaga desejada</label><select class="form-select" name="vacancy" required><option value="">Carregando vagas...</option></select></div>
-              <div class="col-12"><label class="form-label">Resumo profissional</label><textarea class="form-control" name="summary" rows="4"></textarea></div>
-              <div class="col-md-6"><label class="form-label">LinkedIn</label><input class="form-control" name="linkedin" type="url"></div>
-              <div class="col-md-6"><label class="form-label">Portfolio</label><input class="form-control" name="portfolio" type="url"></div>
+              <div class="col-md-6"><label class="form-label" for="candidateName">Nome completo</label><input class="form-control" id="candidateName" name="name" type="text" autocomplete="name" required></div>
+              <div class="col-md-6"><label class="form-label" for="candidateEmail">E-mail</label><input class="form-control" id="candidateEmail" name="email" type="email" autocomplete="email" required></div>
+              <div class="col-md-6"><label class="form-label" for="candidatePhone">Telefone</label><input class="form-control" id="candidatePhone" name="phone" type="tel" autocomplete="tel" required></div>
+              <div class="col-md-6"><label class="form-label" for="candidateVacancy">Vaga desejada</label><select class="form-select" id="candidateVacancy" name="vacancy" required><option value="">Carregando vagas...</option></select></div>
+              <div class="col-12"><label class="form-label" for="candidateSummary">Resumo profissional</label><textarea class="form-control" id="candidateSummary" name="summary" rows="4"></textarea></div>
+              <div class="col-md-6"><label class="form-label" for="candidateLinkedin">LinkedIn</label><input class="form-control" id="candidateLinkedin" name="linkedin" type="url"></div>
+              <div class="col-md-6"><label class="form-label" for="candidatePortfolio">Portfolio</label><input class="form-control" id="candidatePortfolio" name="portfolio" type="url"></div>
               <div class="col-12"><button class="btn btn-brand" type="submit">Enviar cadastro</button></div>
             </div>
           </form>

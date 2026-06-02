@@ -35,8 +35,36 @@ async function apiFetch(path, options = {}) {
   return data;
 }
 
-function showNotice(message) {
-  window.alert(message);
+function showNotice(message, type = "info") {
+  const notice = document.querySelector("[data-notice]");
+  if (!notice) {
+    window.alert(message);
+    return;
+  }
+
+  notice.textContent = message;
+  notice.className = `notice show ${type}`;
+}
+
+function clearNotice() {
+  const notice = document.querySelector("[data-notice]");
+  if (!notice) return;
+  notice.textContent = "";
+  notice.className = "notice";
+}
+
+function setFormLoading(form, isLoading) {
+  const submitButton = form.querySelector("button[type='submit'], input[type='submit']");
+  if (!submitButton) return;
+  if (!submitButton.dataset.originalText) {
+    submitButton.dataset.originalText = submitButton.textContent || submitButton.value;
+  }
+  submitButton.disabled = isLoading;
+  if (submitButton.tagName === "INPUT") {
+    submitButton.value = isLoading ? "Enviando..." : submitButton.dataset.originalText;
+  } else {
+    submitButton.textContent = isLoading ? "Enviando..." : submitButton.dataset.originalText;
+  }
 }
 
 function setActiveNav() {
@@ -166,25 +194,46 @@ async function loadVagasPage() {
 }
 
 async function initCandidateSignup() {
-  const form = document.querySelector("form");
+  const form = document.querySelector("[data-candidate-form], #candidateSignupForm, form");
   const vacancySelect = document.querySelector("select[name='vacancy']");
+  const submitButton = form?.querySelector("button[type='submit'], input[type='submit']");
+  let vacanciesLoaded = true;
+
+  clearNotice();
 
   if (vacancySelect) {
+    vacancySelect.disabled = true;
+    if (submitButton) submitButton.disabled = true;
     try {
       const data = await apiFetch("/vacancies/public");
-      vacancySelect.innerHTML = `<option value="">Selecione</option>` + data.vacancies.map((vacancy) => `
-        <option value="${escapeHtml(vacancy.id)}">${escapeHtml(vacancy.title)}</option>
-      `).join("");
-      const selectedVacancy = new URLSearchParams(window.location.search).get("vaga");
-      if (selectedVacancy) vacancySelect.value = selectedVacancy;
+      if (!data.vacancies.length) {
+        vacanciesLoaded = false;
+        vacancySelect.innerHTML = `<option value="">Nenhuma vaga aberta no momento</option>`;
+        showNotice("Nenhuma vaga aberta no momento.", "warning");
+      } else {
+        vacancySelect.innerHTML = `<option value="">Selecione</option>` + data.vacancies.map((vacancy) => `
+          <option value="${escapeHtml(vacancy.id)}">${escapeHtml(vacancy.title)}</option>
+        `).join("");
+        const selectedVacancy = new URLSearchParams(window.location.search).get("vaga");
+        if (selectedVacancy) vacancySelect.value = selectedVacancy;
+        vacancySelect.disabled = false;
+        if (submitButton) submitButton.disabled = false;
+      }
     } catch (error) {
-      vacancySelect.innerHTML = `<option value="">${error.message}</option>`;
+      vacanciesLoaded = false;
+      vacancySelect.innerHTML = `<option value="">Nao foi possivel carregar as vagas</option>`;
+      showNotice(error.message, "error");
     }
   }
 
   if (!form) return;
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    clearNotice();
+    if (!vacanciesLoaded) {
+      showNotice("Nao ha vagas disponiveis para candidatura agora.", "warning");
+      return;
+    }
     const formData = new FormData(form);
     const body = {
       name: formData.get("name"),
@@ -192,35 +241,44 @@ async function initCandidateSignup() {
       phone: formData.get("phone"),
       vacancy: formData.get("vacancy"),
       portfolio: formData.get("portfolio"),
+      linkedin: formData.get("linkedin"),
       summary: formData.get("summary")
     };
     try {
+      setFormLoading(form, true);
       await apiFetch("/candidates", { method: "POST", body: JSON.stringify(body) });
-      showNotice("Cadastro enviado com sucesso.");
+      showNotice("Cadastro enviado com sucesso.", "success");
       form.reset();
     } catch (error) {
-      showNotice(error.message);
+      showNotice(error.message, "error");
+    } finally {
+      setFormLoading(form, false);
     }
   });
 }
 
 function initLoginPage() {
-  const form = document.querySelector("form");
+  const form = document.querySelector("[data-login-form], #loginForm, form");
   if (!form) return;
+  clearNotice();
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    clearNotice();
     const formData = new FormData(form);
     const body = {
       email: formData.get("email"),
       password: formData.get("password")
     };
     try {
+      setFormLoading(form, true);
       const data = await apiFetch("/auth/login", { method: "POST", body: JSON.stringify(body) });
       setToken(data.token);
-      showNotice("Login realizado com sucesso.");
+      showNotice("Login realizado com sucesso.", "success");
       window.location.href = homeForRole(data.user.role);
     } catch (error) {
-      showNotice(error.message);
+      showNotice(error.message, "error");
+    } finally {
+      setFormLoading(form, false);
     }
   });
 }

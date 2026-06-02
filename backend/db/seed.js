@@ -35,8 +35,8 @@ async function reset(client) {
     DELETE FROM vacation_requests;
     DELETE FROM payslips;
     DELETE FROM payroll;
-    DELETE FROM candidates;
     DELETE FROM users;
+    DELETE FROM candidates;
     DELETE FROM vacancies;
     DELETE FROM employees;
   `);
@@ -94,10 +94,12 @@ async function run() {
     const insertCandidateText = `
       INSERT INTO candidates (name, email, phone, portfolio, summary, vacancy_id, stage, score, source)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING id
     `;
+    const candidateIds = {};
 
     for (const candidate of candidates) {
-      await client.query(insertCandidateText, [
+      const result = await client.query(insertCandidateText, [
         candidate.name,
         candidate.email,
         candidate.phone,
@@ -108,6 +110,7 @@ async function run() {
         candidate.score,
         candidate.source
       ]);
+      candidateIds[candidate.email] = result.rows[0].id;
     }
 
     const insertUserText = `
@@ -118,7 +121,7 @@ async function run() {
     await client.query(insertUserText, ["Equipe RH", "rh@rhflow.com", passwordHash, "rh", employeeIds["marina@rhflow.com"], null]);
     await client.query(insertUserText, ["Rafael Dias", "gestor@rhflow.com", passwordHash, "manager", null, null]);
     await client.query(insertUserText, ["Marina Alves", "marina@rhflow.com", passwordHash, "employee", employeeIds["marina@rhflow.com"], null]);
-    await client.query(insertUserText, ["Ana Lima", "candidato@rhflow.com", passwordHash, "candidate", null, 1]);
+    await client.query(insertUserText, ["Ana Lima", "candidato@rhflow.com", passwordHash, "candidate", null, candidateIds["ana.lima@email.com"]]);
     await client.query(insertUserText, ["Seguranca RH", "seguranca@rhflow.com", passwordHash, "admin", null, null]);
 
     const insertPayrollText = `
